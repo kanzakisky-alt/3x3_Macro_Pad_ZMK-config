@@ -1,0 +1,122 @@
+#include <behaviors.dtsi>
+#include <dt-bindings/zmk/keys.h>
+#include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
+
+// Define our 5 distinct layers
+#define LAYER_GENERAL  0
+#define LAYER_CODING   1
+#define LAYER_GAMEDEV  2
+#define LAYER_EDITING  3
+#define LAYER_MEDIA    4
+
+/ {
+    behaviors {
+        // Custom macro behaviors to trigger a hard jump back to base layer if needed
+        to_gen: to_general {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings = <&to LAYER_GENERAL>;
+        };
+    };
+
+    // Encoder navigation logic with "Press + Spin" boundaries (No looping!)
+    sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&encoder>;
+        
+        // LAYER 0: GENERAL
+        layer_general_sensor {
+            status = "okay";
+            // Normal spin: Volume Up / Down. Pressed spin: Move up to Coding (cannot go lower than General)
+            bindings = <&kp C_VOL_UP &kp C_VOL_DN>, <&to LAYER_CODING &none>;
+        };
+
+        // LAYER 1: CODING
+        layer_coding_sensor {
+            status = "okay";
+            // Normal spin: Zoom In / Out. Pressed spin: Move up to Game Dev or down to General
+            bindings = <&kp LC(EQUAL) &kp LC(MINUS)>, <&to LAYER_GAMEDEV &to LAYER_GENERAL>;
+        };
+
+        // LAYER 2: GAME DEV
+        layer_gamedev_sensor {
+            status = "okay";
+            // Normal spin: Brush Size Changes ([ and ]). Pressed spin: Move up to Editing or down to Coding
+            bindings = <&kp RBKT &kp LBKT>, <&to LAYER_EDITING &to LAYER_CODING>;
+        };
+
+        // LAYER 3: EDITING
+        layer_editing_sensor {
+            status = "okay";
+            // Normal spin: Timeline Scrubbing / Arrow Keys. Pressed spin: Move up to Media or down to Game Dev
+            bindings = <&kp RIGHT &kp LEFT>, <&to LAYER_MEDIA &to LAYER_GAMEDEV>;
+        };
+
+        // LAYER 4: MEDIA
+        layer_media_sensor {
+            status = "okay";
+            // Normal spin: Next / Prev Track. Pressed spin: Move down to Editing (cannot go higher than Media)
+            bindings = <&kp C_NEXT &kp C_PREV>, <&none &to LAYER_EDITING>;
+        };
+    };
+
+    keymap {
+        compatible = "zmk,keymap";
+
+        // LAYER 0: GENERAL WORKSPACE
+        general_layer {
+            label = "General";
+            bindings = <
+                &kp N1       &kp N2       &kp N3       &kp C_MUTE
+                &kp N4       &kp N5       &kp N6
+                &kp N7       &kp N8       &kp N9
+            >;
+            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
+        };
+
+        // LAYER 1: CODING / SHORTCUTS
+        coding_layer {
+            label = "Coding";
+            bindings = <
+                &kp LG(TAB)  &kp LC(W)    &kp LC(T)    &to_gen
+                &kp LC(Z)    &kp LC(X)    &kp LC(C)
+                &kp LC(V)    &kp LS(LC(I))&kp F5
+            >;
+            sensor-bindings = <&inc_dec_kp LC(EQUAL) LC(MINUS)>;
+        };
+
+        // LAYER 2: GAME DEVELOPMENT (Purple Core Workflow)
+        gamedev_layer {
+            label = "Game Dev";
+            bindings = <
+                &kp F5       &kp LC(S)    &kp LC(B)    &to_gen
+                &kp W        &kp A        &kp S
+                &kp D        &kp SPACE    &kp E
+            >;
+            sensor-bindings = <&inc_dec_kp RBKT LBKT>;
+        };
+
+        // LAYER 3: EDITING / TIMELINE
+        editing_layer {
+            label = "Editing";
+            bindings = <
+                &kp B        &kp V        &kp C        &to_gen
+                &kp HOME     &kp UP       &kp END
+                &kp LEFT     &kp DOWN     &kp RIGHT
+            >;
+            sensor-bindings = <&inc_dec_kp RIGHT LEFT>;
+        };
+
+        // LAYER 4: MEDIA & BLUETOOTH CONTROL
+        media_layer {
+            label = "Media/BT";
+            bindings = <
+                &bt BT_CLR   &bt BT_NXT   &bt BT_PRV   &to_gen
+                &kp C_PP     &kp C_FF     &kp C_RW
+                &out OUT_TOG &none        &none
+            >;
+            sensor-bindings = <&inc_dec_kp C_NEXT C_PREV>;
+        };
+    };
+};
