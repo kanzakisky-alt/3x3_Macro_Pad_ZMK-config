@@ -3,16 +3,67 @@
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/outputs.h>
 
-// Define our layers
-#define LAYER_BASE       0
-#define LAYER_CHROME     1
-#define LAYER_REMOTE     2
-#define LAYER_GAME       3
-#define LAYER_FUN        4
-
 / {
+    // 📍 HARDWARE PINS SECTION
+    // This tells ZMK exactly which physical holes on your Seeed Xiao are soldered to what!
+    chosen {
+        zmk,kscan = &kscan0;
+    };
+
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-matrix";
+        label = "KSCAN";
+        diode-direction = "col2row";
+
+        // 🟢 Solder your ROW wires to these physical digital pins:
+        row-gpios
+            = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 0 (Top keys)
+            , <&xiao_d 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 1 (Middle keys)
+            , <&xiao_d 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 2 (Bottom keys)
+            ;
+
+        // 🔵 Solder your COLUMN wires to these physical digital pins:
+        col-gpios
+            = <&xiao_d 3 GPIO_ACTIVE_HIGH> // Column 0 (Left vertical line of keys)
+            , <&xiao_d 4 GPIO_ACTIVE_HIGH> // Column 1 (Middle vertical line of keys)
+            , <&xiao_d 5 GPIO_ACTIVE_HIGH> // Column 2 (Right vertical line of keys)
+            , <&xiao_d 6 GPIO_ACTIVE_HIGH> // Column 3 (The encoder click-switch pin!)
+            ;
+    };
+
+    // 🎛️ ROTARY ENCODER PINS SECTION
+    // Solder the two spinning signal legs of your wheel encoder here
+    encoder: encoder {
+        compatible = "alps,ec11";
+        label = "ENCODER";
+        a-gpios = <&xiao_d 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // Pin A / CLK
+        b-gpios = <&xiao_d 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // Pin B / DT
+        steps = <8>; // Optimized for your 8mm wheel sensitivity
+    };
+
+    // This activates the encoder inside ZMK's engine
+    sensors {
+        compatible = "zmk,keymap-sensors";
+        sensors = <&encoder>;
+        
+        // LAYER 0: BASE
+        layer_base_sensor { bindings = <&kp C_VOL_UP &kp C_VOL_DN>, <&to 1 &none>; };
+
+        // LAYER 1: CHROME
+        layer_chrome_sensor { bindings = <&kp LC(TAB) &kp LC(LS(TAB))>, <&to 2 &to 0>; };
+
+        // LAYER 2: REMOTE CONTROLLER
+        layer_remote_sensor { bindings = <&kp RIGHT &kp LEFT>, <&to 3 &to 1>; };
+
+        // LAYER 3: GAME
+        layer_game_sensor { bindings = <&kp C_AC_SCROLL_UP &kp C_AC_SCROLL_DOWN>, <&to 4 &to 2>; };
+
+        // LAYER 4: FUN/FIDDLE SCREEN
+        layer_fun_sensor { bindings = <&none &none>, <&none &to 3>; };
+    };
+
+    // 🧠 SOFTWARE KEYBINDS SECTION
     behaviors {
-        // Window Maximize/Minimize toggle behavior for the top right key
         win_mod: windows_maximize_minimize {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
@@ -20,7 +71,6 @@
             mods = <(MOD_LSHIFT|MOD_RSHIFT)>;
         };
 
-        // 📝 Automated Hands-Free Macro: Win + R -> "notepad" -> Enter
         open_notepad: open_notepad_macro {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
@@ -31,42 +81,6 @@
                 , <&zmk,delay_ms 100>
                 , <&kp N &kp O &kp T &kp E &kp P &kp A &kp D>
                 , <&kp ENTER>;
-        };
-    };
-
-    // Encoder navigation logic (Press + Spin to jump cleanly between all layers)
-    sensors {
-        compatible = "zmk,keymap-sensors";
-        sensors = <&encoder>;
-        
-        // LAYER 0: BASE
-        layer_base_sensor {
-            status = "okay";
-            bindings = <&kp C_VOL_UP &kp C_VOL_DN>, <&to LAYER_CHROME &none>;
-        };
-
-        // LAYER 1: CHROME
-        layer_chrome_sensor {
-            status = "okay";
-            bindings = <&kp LC(TAB) &kp LC(LS(TAB))>, <&to LAYER_REMOTE &to LAYER_BASE>;
-        };
-
-        // LAYER 2: REMOTE CONTROLLER
-        layer_remote_sensor {
-            status = "okay";
-            bindings = <&kp RIGHT &kp LEFT>, <&to LAYER_GAME &to LAYER_CHROME>;
-        };
-
-        // LAYER 3: GAME
-        layer_game_sensor {
-            status = "okay";
-            bindings = <&none &none>, <&to LAYER_FUN &to LAYER_REMOTE>;
-        };
-
-        // LAYER 4: FUN/FIDDLE SCREEN
-        layer_fun_sensor {
-            status = "okay";
-            bindings = <&none &none>, <&none &to LAYER_GAME>; // Hold push + turn left to escape back to Game
         };
     };
 
@@ -101,7 +115,7 @@
             bindings = <
                 &kp C_PREV       &kp C_PP     &kp C_NEXT    &none
                 &kp C_VOL_DN     &kp C_MUTE   &kp C_VOL_UP
-                &kp HOME         &kp C        &kp END        // 'C' is the default Canva hotkey to show/hide presenter notes
+                &kp HOME         &kp C        &kp END       
             >;
             sensor-bindings = <&inc_dec_kp RIGHT LEFT>;
         };
@@ -110,7 +124,7 @@
         game_layer {
             label = "Game";
             bindings = <
-                &kp N1           &kp UP       &kp N2        &KP ESC
+                &kp N1           &kp UP       &kp N2        &kp ESC  
                 &kp LEFT         &kp DOWN     &kp RIGHT
                 &kp LCTRL        &kp LSHIFT   &kp SPACE
             >;
@@ -119,7 +133,7 @@
 
         // LAYER 4: FUN / SCREEN FIDDLE LAYER
         fun_layer {
-            label = "Fiddle Screen";
+            label = "Fiddle";
             bindings = <
                 &none            &none        &none         &none
                 &none            &none        &none
