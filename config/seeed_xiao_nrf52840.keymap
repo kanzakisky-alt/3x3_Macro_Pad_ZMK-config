@@ -1,50 +1,31 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
-#include <dt-bindings/zmk/bt.h>
-#include <dt-bindings/zmk/outputs.h>
 
 / {
-    // 📍 HARDWARE PINS SECTION
     chosen {
         zmk,kscan = &kscan0;
     };
 
+    // 📍 DIRECT-WIRE MATRIX (Ultra-stable compilation configuration)
     kscan0: kscan {
         compatible = "zmk,kscan-gpio-matrix";
         label = "KSCAN";
         diode-direction = "col2row";
 
         row-gpios
-            = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 0
-            , <&xiao_d 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 1
-            , <&xiao_d 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 2
+            = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 0 (Top keys)
+            , <&xiao_d 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 1 (Middle keys)
+            , <&xiao_d 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 2 (Bottom keys)
             ;
 
         col-gpios
-            = <&xiao_d 3 GPIO_ACTIVE_HIGH> // Column 0
-            , <&xiao_d 4 GPIO_ACTIVE_HIGH> // Column 1
-            , <&xiao_d 5 GPIO_ACTIVE_HIGH> // Column 2
-            , <&xiao_d 6 GPIO_ACTIVE_HIGH> // Column 3 (Encoder Click)
+            = <&xiao_d 3 GPIO_ACTIVE_HIGH> // Column 0 (Left vertical)
+            , <&xiao_d 4 GPIO_ACTIVE_HIGH> // Column 1 (Middle vertical)
+            , <&xiao_d 5 GPIO_ACTIVE_HIGH> // Column 2 (Right vertical)
+            , <&xiao_d 6 GPIO_ACTIVE_HIGH> // Column 3 (Encoder Switch Pin)
             ;
     };
 
-    // 🎛️ FULLY CONTAINED ROTARY ENCODER DRIVER
-    // Defining both the hardware block and assigning it a local reference pointer
-    my_encoder: my_encoder {
-        compatible = "alps,ec11";
-        label = "MAIN_ENCODER";
-        a-gpios = <&xiao_d 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-        b-gpios = <&xiao_d 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
-        steps = <8>;
-    };
-
-    sensors {
-        compatible = "zmk,keymap-sensors";
-        sensors = <&my_encoder>; // Using our explicitly defined local label
-        trig-edge = <3>;
-    };
-
-    // 🧠 SOFTWARE KEYBINDS SECTION
     behaviors {
         win_mod: windows_maximize_minimize {
             compatible = "zmk,behavior-mod-morph";
@@ -77,51 +58,6 @@
                 &open_notepad    &kp CALC     &kp LS(LC(C))
                 &kp LC(X)        &kp LC(C)    &kp LC(V)
             >;
-            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN>;
-        };
-
-        // LAYER 1: CHROME & TEXT EDITORS
-        chrome_layer {
-            label = "Chrome";
-            bindings = <
-                &kp LC(W)        &kp LC(T)    &kp LC(LS(T)) &none
-                &kp LSHIFT       &kp LC(LEFT) &kp LC(RIGHT)
-                &kp LC(X)        &kp LC(C)    &kp LC(V)
-            >;
-            sensor-bindings = <&inc_dec_kp LC(TAB) LC(LS(TAB))>;
-        };
-
-        // LAYER 2: REMOTE CONTROLLER (Canva Presentation / Video Control)
-        remote_layer {
-            label = "Remote";
-            bindings = <
-                &kp C_PREV       &kp C_PP     &kp C_NEXT    &none
-                &kp C_VOL_DN     &kp C_MUTE   &kp C_VOL_UP
-                &kp HOME         &kp C        &kp END       
-            >;
-            sensor-bindings = <&inc_dec_kp RIGHT LEFT>;
-        };
-
-        // LAYER 3: GAME MODE
-        game_layer {
-            label = "Game";
-            bindings = <
-                &kp N1           &kp UP       &kp N2        &kp ESC  
-                &kp LEFT         &kp DOWN     &kp RIGHT
-                &kp LCTRL        &kp LSHIFT   &kp SPACE
-            >;
-            sensor-bindings = <&inc_dec_kp C_AC_SCROLL_UP C_AC_SCROLL_DOWN>;
-        };
-
-        // LAYER 4: FUN / SCREEN FIDDLE LAYER
-        fun_layer {
-            label = "Fiddle";
-            bindings = <
-                &none            &none        &none         &none
-                &none            &none        &none
-                &none            &none        &none
-            >;
-            sensor-bindings = <&none &none>;
         };
     };
 };
