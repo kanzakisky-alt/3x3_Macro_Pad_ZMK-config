@@ -28,18 +28,19 @@
             ;
     };
 
-    // 🎛️ ROTARY ENCODER NODE
-    encoder: encoder {
+    // 🎛️ FULLY CONTAINED ROTARY ENCODER DRIVER
+    // Defining both the hardware block and assigning it a local reference pointer
+    my_encoder: my_encoder {
         compatible = "alps,ec11";
-        label = "ENCODER";
+        label = "MAIN_ENCODER";
         a-gpios = <&xiao_d 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         b-gpios = <&xiao_d 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
         steps = <8>;
     };
 
-    sensors: sensors {
+    sensors {
         compatible = "zmk,keymap-sensors";
-        sensors = <&encoder>;
+        sensors = <&my_encoder>; // Using our explicitly defined local label
         trig-edge = <3>;
     };
 
