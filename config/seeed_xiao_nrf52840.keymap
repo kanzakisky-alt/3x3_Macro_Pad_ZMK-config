@@ -5,7 +5,6 @@
 
 / {
     // 📍 HARDWARE PINS SECTION
-    // This tells ZMK exactly which physical holes on your Seeed Xiao are soldered to what!
     chosen {
         zmk,kscan = &kscan0;
     };
@@ -15,51 +14,33 @@
         label = "KSCAN";
         diode-direction = "col2row";
 
-        // 🟢 Solder your ROW wires to these physical digital pins:
         row-gpios
-            = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 0 (Top keys)
-            , <&xiao_d 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 1 (Middle keys)
-            , <&xiao_d 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 2 (Bottom keys)
+            = <&xiao_d 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 0
+            , <&xiao_d 1 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 1
+            , <&xiao_d 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)> // Row 2
             ;
 
-        // 🔵 Solder your COLUMN wires to these physical digital pins:
         col-gpios
-            = <&xiao_d 3 GPIO_ACTIVE_HIGH> // Column 0 (Left vertical line of keys)
-            , <&xiao_d 4 GPIO_ACTIVE_HIGH> // Column 1 (Middle vertical line of keys)
-            , <&xiao_d 5 GPIO_ACTIVE_HIGH> // Column 2 (Right vertical line of keys)
-            , <&xiao_d 6 GPIO_ACTIVE_HIGH> // Column 3 (The encoder click-switch pin!)
+            = <&xiao_d 3 GPIO_ACTIVE_HIGH> // Column 0
+            , <&xiao_d 4 GPIO_ACTIVE_HIGH> // Column 1
+            , <&xiao_d 5 GPIO_ACTIVE_HIGH> // Column 2
+            , <&xiao_d 6 GPIO_ACTIVE_HIGH> // Column 3 (Encoder Click)
             ;
     };
 
-    // 🎛️ ROTARY ENCODER PINS SECTION
-    // Solder the two spinning signal legs of your wheel encoder here
+    // 🎛️ ROTARY ENCODER NODE
     encoder: encoder {
         compatible = "alps,ec11";
         label = "ENCODER";
-        a-gpios = <&xiao_d 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // Pin A / CLK
-        b-gpios = <&xiao_d 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>; // Pin B / DT
-        steps = <8>; // Optimized for your 8mm wheel sensitivity
+        a-gpios = <&xiao_d 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        b-gpios = <&xiao_d 8 (GPIO_ACTIVE_HIGH | GPIO_PULL_UP)>;
+        steps = <8>;
     };
 
-    // This activates the encoder inside ZMK's engine
-    sensors {
+    sensors: sensors {
         compatible = "zmk,keymap-sensors";
         sensors = <&encoder>;
-        
-        // LAYER 0: BASE
-        layer_base_sensor { bindings = <&kp C_VOL_UP &kp C_VOL_DN>, <&to 1 &none>; };
-
-        // LAYER 1: CHROME
-        layer_chrome_sensor { bindings = <&kp LC(TAB) &kp LC(LS(TAB))>, <&to 2 &to 0>; };
-
-        // LAYER 2: REMOTE CONTROLLER
-        layer_remote_sensor { bindings = <&kp RIGHT &kp LEFT>, <&to 3 &to 1>; };
-
-        // LAYER 3: GAME
-        layer_game_sensor { bindings = <&kp C_AC_SCROLL_UP &kp C_AC_SCROLL_DOWN>, <&to 4 &to 2>; };
-
-        // LAYER 4: FUN/FIDDLE SCREEN
-        layer_fun_sensor { bindings = <&none &none>, <&none &to 3>; };
+        trig-edge = <3>;
     };
 
     // 🧠 SOFTWARE KEYBINDS SECTION
