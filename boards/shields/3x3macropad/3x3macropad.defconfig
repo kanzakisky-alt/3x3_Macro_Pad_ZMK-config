@@ -1,6 +1,6 @@
-if SHIELD_PURPLE_CORE_PAD
+if 3X3MACROPAD
 
 config ZMK_KEYBOARD_NAME
-    default "PurpleCorePad"
+    default "3x3macropad"
 
 endif
